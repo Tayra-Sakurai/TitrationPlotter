@@ -1,12 +1,51 @@
 ﻿from math import nan
 import numpy as np
 import scipy.optimize as opt
+import matplotlib.pyplot as plt
+from tkinter import Button, Widget, PhotoImage, Tk, StringVar, BooleanVar
+from tkinter.ttk import Frame, Entry, Label, Spinbox, Button
 
 ca = 0.0
 cb = 0.0
-va = 0.0
+va = 110.0
 vb = 0.0
 kw = 1e-14
+
+def settings () -> None:
+    '''This sets the options of the plot
+
+    This has no argumanets.
+    '''
+    global ca,cb,kw
+    # Widget
+    root = Tk()
+    content = Frame(root)
+    # CSV file of the data
+    csvfilename = StringVar()
+    datainput = Entry(content, textvariable=csvfilename)
+    datalabel = Label(content, text='滴定データを含むcsvファイルのパス')
+    # concentration of the acid
+    caS = StringVar()
+    caEntry = Spinbox(content, from_=0.00, to=10.000, increment=0.0001, textvariable=caS)
+    caLabel = Label(content, text='被滴定溶液の容量モル濃度 / M')
+    # Kw
+    kwS = StringVar()
+    kwEntry = Entry(content, textvariable=kwS)
+    kwLabel = Label(content, text='Kwの値')
+    # Cb
+    cbS = StringVar()
+    cbEntry = Entry(content, textvariable=cbS)
+    cbLabel = Label(content, text='滴定時に加えた塩基の濃度/ mol L-1')
+    # Button
+    btn = Button(content, text='プロットを作成')
+    content.grid(column=0, row=0)
+    datainput.grid(column=1, row=1, columnspan=2)
+    datalabel.grid(column=0, row=1)
+    caEntry.grid(column=1, row=2, columnspan=2)
+    caLabel.grid(column=0, row=2)
+    cbEntry.grid(column=1, row=3, columnspan=2)
+    cbLabel.grid(column=0, row=3)
+    return None
 
 def titration_pH (vb: np.ndarray, ka: float) -> np.ndarray:
     '''This returns the array of the roots.
@@ -35,6 +74,4 @@ def titration_pH (vb: np.ndarray, ka: float) -> np.ndarray:
                     break
                 else:
                     continue
-
-        
-    
+    return np.array(result)
