@@ -11,3 +11,5 @@ The csv file to hand to the program must be in the following format and not have
 [titrated volume of the base],[pH value]
 ...
 ```
+
+You are free to use this program for any purpose allowed under the laws.
