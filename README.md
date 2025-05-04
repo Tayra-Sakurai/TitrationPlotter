@@ -18,7 +18,7 @@ You are free to use this program for any purpose allowed under the laws.
 
 This program uses least-square method on the following function:
 
-```pyhton
+```python
 from csv import reader
 from math import ceil, nan
 import numpy as np
@@ -54,4 +54,4 @@ def titration_pH (vb: np.ndarray, ka: float, delta1: float, delta2: float) -> np
     return rarray
 ```
 
-The second and latter arguments represent fitted variables.
+The second and latter arguments represent fitted variables. `k1` is defined as the dissociation constant of $\text{CO}_2$ and `k2` is the second one.
