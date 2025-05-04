@@ -1,7 +1,8 @@
 ﻿from csv import reader
-from math import ceil, nan
+from math import ceil, log10, nan
 import numpy as np
 import scipy.optimize as opt
+from scipy import differentiate
 import matplotlib.pyplot as plt
 from tkinter import VERTICAL, Button, Listbox, Widget, PhotoImage, Tk, StringVar, BooleanVar
 from tkinter.ttk import Frame, Entry, Label, Scrollbar, Spinbox, Button
@@ -23,7 +24,7 @@ ylabel = StringVar()
 xlabel = StringVar()
 # Result
 resultbox = Listbox(content, height=3, width=50)
-def titration_pH (vb: np.ndarray, ka: float, delta1: float, delta2: float) -> np.ndarray:
+def titration_pH (vb: np.ndarray | float | np.float64, ka: float, delta1: float, delta2: float) -> np.ndarray | float:
     '''This returns the array of the roots.
 
     This function solves the equation about the concentration of proton.
@@ -36,18 +37,33 @@ def titration_pH (vb: np.ndarray, ka: float, delta1: float, delta2: float) -> np
     delta2: correction
     '''
     result = list()
-    print(ka)
+    print('ka=', ka)
     # For each vb, make and solve the equation
-    for arr in np.nditer(vb):
+    if type(vb) == np.ndarray:
+        print('size=', vb.size)
+        for arr in np.nditer(vb):
+            delta = delta1 * (arr ** 2) + delta2
+            polyn = [1, ka + (arr * cb) / (va + arr), ((ka / (va + arr)) * (cb * arr - ca * va)) - kw - delta * k1, - (ka * kw + 2 * delta * k2 + delta * ka * k1), -2 * k2 * ka]
+            polyn.reverse()
+            f = lambda x: np.polynomial.polynomial.polyval(x, polyn)
+            rf = opt.fsolve(f, [0.1])
+            print('rf=', rf)
+            result.append(rf[0])
+    elif type(vb) == float or type(vb) == np.float64:
+        # If it is a float, do the same
+        arr = vb
         delta = delta1 * (arr ** 2) + delta2
         polyn = [1, ka + (arr * cb) / (va + arr), ((ka / (va + arr)) * (cb * arr - ca * va)) - kw - delta * k1, - (ka * kw + 2 * delta * k2 + delta * ka * k1), -2 * k2 * ka]
         polyn.reverse()
         f = lambda x: np.polynomial.polynomial.polyval(x, polyn)
         rf = opt.fsolve(f, [0.1])
         result.append(rf[0])
+        return -log10(rf[0])
+    else:
+        raise TypeError('Invalid type of vb')
     print('result=',result)
     rarray = -np.log10(np.array(result))
-    print(rarray)
+    print('rarray=', rarray)
     return rarray
 
 def cmd () -> bool:
@@ -72,6 +88,20 @@ def cmd () -> bool:
     for p in np.nditer(popt):
         resultbox.insert('end', p)
     xrange = np.arange(min(*vb),max(*vb),0.00005)
+    # Find the equivalent point
+    equivlist = [
+        titration_pH(vb[i+1], *popt) - titration_pH(vb[i], *popt) for i in range(len(vb)-1)
+        ]
+    equiv = vb[np.argmax(equivlist) + 1]
+    # Output the equivalent point
+    resultbox.insert('end', f'equivalent point: {equiv} mL')
+    # Output the pH at the equivalent point
+    resultbox.insert(
+        'end', f'pH at the equivalent point: {titration_pH(equiv, *popt)}')
+    # Find the pH at the equivalent point
+    equivpH = titration_pH(equiv, *popt)
+    plt.axhline(equivpH, 0, equiv, linestyle='--')
+    plt.axvline(equiv, 0, 1, linestyle='--')
     plt.plot(xrange, titration_pH(xrange, *popt))
     plt.plot(vb,pH,'.')
     plt.grid(True, 'both')
