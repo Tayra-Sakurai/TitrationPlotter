@@ -39,7 +39,7 @@ def titration_pH (vb: np.ndarray, ka: float, delta1: float, delta2: float) -> np
     print(ka)
     # For each vb, make and solve the equation
     for arr in np.nditer(vb):
-        delta = delta1 * arr + delta2
+        delta = delta1 * (arr ** 2) + delta2
         polyn = [1, ka + (arr * cb) / (va + arr), ((ka / (va + arr)) * (cb * arr - ca * va)) - kw - delta * k1, - (ka * kw + 2 * delta * k2 + delta * ka * k1), -2 * k2 * ka]
         polyn.reverse()
         f = lambda x: np.polynomial.polynomial.polyval(x, polyn)
