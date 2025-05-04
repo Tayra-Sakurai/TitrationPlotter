@@ -3,8 +3,8 @@ from math import ceil, nan
 import numpy as np
 import scipy.optimize as opt
 import matplotlib.pyplot as plt
-from tkinter import Button, Listbox, Widget, PhotoImage, Tk, StringVar, BooleanVar
-from tkinter.ttk import Frame, Entry, Label, Spinbox, Button
+from tkinter import VERTICAL, Button, Listbox, Widget, PhotoImage, Tk, StringVar, BooleanVar
+from tkinter.ttk import Frame, Entry, Label, Scrollbar, Spinbox, Button
 
 ca = 0.0
 cb = 0.0
@@ -109,23 +109,27 @@ def settings () -> None:
     # Y label
     yLabelEntry = Entry(content, textvariable=ylabel)
     yLabelLabel = Label(content, text='y軸のラベル')
+    #Scroll bar
+    sBar = Scrollbar(content, orient=VERTICAL, command=resultbox.yview)
     # Button
     btn = Button(content, text='プロットを作成', command=cmd)
     content.grid(column=0, row=0)
-    datainput.grid(column=1, row=0, columnspan=2)
+    datainput.grid(column=1, row=0, columnspan=3)
     datalabel.grid(column=0, row=0)
-    caEntry.grid(column=1, row=1, columnspan=2)
+    caEntry.grid(column=1, row=1, columnspan=3)
     caLabel.grid(column=0, row=1)
-    cbEntry.grid(column=1, row=2, columnspan=2)
+    cbEntry.grid(column=1, row=2, columnspan=3)
     cbLabel.grid(column=0, row=2)
-    kwEntry.grid(column=1, row=3, columnspan=2)
+    kwEntry.grid(column=1, row=3, columnspan=3)
     kwLabel.grid(column=0, row=3)
-    xLabelEntry.grid(column=1, row=4, columnspan=2)
+    xLabelEntry.grid(column=1, row=4, columnspan=3)
     xLabelLabel.grid(column=0, row=4)
-    yLabelEntry.grid(column=1, row=5, columnspan=2)
+    yLabelEntry.grid(column=1, row=5, columnspan=3)
     yLabelLabel.grid(column=0, row=5)
     resultbox.grid(column=0,row=6,columnspan=3)
-    btn.grid(column=2, row=7)
+    resultbox['yscrollcommand'] = sBar.set
+    sBar.grid(column=3, row=6)
+    btn.grid(column=2, row=7, columnspan=2)
     root.mainloop()
     return None
 
