@@ -72,3 +72,7 @@ def titration_pH (vb: np.ndarray | float | np.float64, ka: float, delta1: float,
 ```
 
 The second and latter arguments represent fitted variables. `k1` is defined as the dissociation constant of $\text{CO}_2$ and `k2` is the second one.
+
+## Bibliography
+
+T. Okada, T. Kakiuchi, and K. Maeda _Bunsekikagaku no Kiso_ (in Japanese, 2012) 1st edition, Kagaku Dojin
