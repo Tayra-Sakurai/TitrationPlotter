@@ -8,7 +8,6 @@ from scipy import differentiate
 import matplotlib.pyplot as plt
 from tkinter import VERTICAL, Button, Listbox, Widget, PhotoImage, Tk, StringVar, BooleanVar
 from tkinter.ttk import Frame, Entry, Label, Scrollbar, Spinbox, Button
-
 import scipy.version
 
 ca = 0.0
@@ -26,9 +25,11 @@ kwS = StringVar()
 cbS = StringVar()
 ylabel = StringVar()
 xlabel = StringVar()
+originallabel = StringVar()
+curvelabel = StringVar()
 # Result
 resultbox = Listbox(content, height=3, width=50)
-def titration_pH (vb: np.ndarray | float | np.float64, ka: float, delta1: float | np.float64, delta2: float | np.float64) -> np.ndarray | float:
+def titration_pH (vb: np.ndarray | float | np.float64, ka: float, delta1: float | np.float64, delta2: float | np.float64, delta3: float | np.float64) -> np.ndarray | float:
     '''This returns the array of the roots.
 
     This function solves the equation about the concentration of proton.
@@ -39,6 +40,7 @@ def titration_pH (vb: np.ndarray | float | np.float64, ka: float, delta1: float 
     vb: volume of added base.
     delta1: correction of concentration of proton
     delta2: correction
+    delta3: correction
     '''
     result = list()
     print('ka=', ka)
@@ -49,7 +51,7 @@ def titration_pH (vb: np.ndarray | float | np.float64, ka: float, delta1: float 
         count = 0
         for arr in np.nditer(vb):
             count += 1
-            delta = delta1 * (arr ** 2) + delta2
+            delta = delta1 * (arr**2) + delta2 * arr + delta3
             polyn = [1, ka + (arr * cb) / (va + arr), ((ka / (va + arr)) * (cb * arr - ca * va)) - kw - delta * k1, - (ka * kw + 2 * delta * k2 + delta * ka * k1), -2 * k2 * ka]
             polyn.reverse()
             f = lambda x: np.polynomial.polynomial.polyval(x, polyn)
@@ -62,7 +64,7 @@ def titration_pH (vb: np.ndarray | float | np.float64, ka: float, delta1: float 
     elif type(vb) == float or type(vb) == np.float64:
         # If it is a float, do the same
         arr = vb
-        delta = delta1 * (arr ** 2) + delta2
+        delta = delta1 * (arr**2) + delta2 * arr + delta3
         polyn = [1, ka + (arr * cb) / (va + arr), ((ka / (va + arr)) * (cb * arr - ca * va)) - kw - delta * k1, - (ka * kw + 2 * delta * k2 + delta * ka * k1), -2 * k2 * ka]
         polyn.reverse()
         f = lambda x: np.polynomial.polynomial.polyval(x, polyn)
@@ -95,10 +97,10 @@ def cmd () -> bool:
     ca = float(caS.get())
     cb = float(cbS.get())
     kw = float(kwS.get())
-    (popt, pcov) = opt.curve_fit(titration_pH, vb, pH, (1.754e-5, 0, 1.31e-5))
+    (popt, pcov) = opt.curve_fit(titration_pH, vb, pH, (8.77e-6, 0, 0, 1.31e-5))
     for p in np.nditer(popt):
         resultbox.insert('end', p)
-    xrange = np.arange(min(*vb),max(*vb),0.00005)
+    xrange = np.linspace(int(min(*vb)),ceil(max(*vb)),10000)
     # Find the equivalent point
     # Calculate the derivative
     # Find the points where the derivative is 1
@@ -113,13 +115,13 @@ def cmd () -> bool:
     resultbox.insert('end',
                      f'Equivalent point: {equivalent} mL, pH: {pH_equivalent}')
     # Plot the point
-    plt.plot(equivalent, pH_equivalent, 'o')
+    plt.plot(equivalent, pH_equivalent, 'ko', label="Equivalent Point")
     # Plot horizontal line
     plt.axhline(pH_equivalent, color='0.8', linestyle='--')
     # Plot vertical line
     plt.axvline(equivalent, color='0.8', linestyle='--')
-    plt.plot(xrange, titration_pH(xrange, *popt), color='0.3', linestyle='-')
-    plt.plot(vb,pH,'k.')
+    plt.plot(xrange, titration_pH(xrange, *popt), color='0.3', linestyle='-', label=curvelabel.get())
+    plt.plot(vb,pH,'k.', label=originallabel.get())
     plt.grid(True, 'both')
     plt.minorticks_on()
     plt.xticks(np.arange(int(min(vb)), ceil(max(vb)), 0.02), minor=True)
@@ -128,6 +130,8 @@ def cmd () -> bool:
     plt.yticks(np.arange(int(min(pH)), ceil(max(pH))), minor=False)
     plt.ylabel(ylabel.get())
     plt.xlabel(xlabel.get())
+    # Show the legend
+    plt.legend()
     plt.show()
     return False
 
@@ -157,6 +161,12 @@ def settings () -> None:
     yLabelLabel = Label(content, text='y軸のラベル')
     #Scroll bar
     sBar = Scrollbar(content, orient=VERTICAL, command=resultbox.yview)
+    # Label for points
+    pointLabelEntry = Entry(content, textvariable=originallabel)
+    pointLabelLabel = Label(content, text='csvでインポートしたデータの凡例')
+    # Label for curve
+    curveLabelEntry = Entry(content, textvariable=curvelabel)
+    curveLabelLabel = Label(content, text='フィッティングしたデータの凡例')
     # Button
     btn = Button(content, text='プロットを作成', command=cmd)
     content.grid(column=0, row=0)
@@ -172,10 +182,14 @@ def settings () -> None:
     xLabelLabel.grid(column=0, row=4)
     yLabelEntry.grid(column=1, row=5, columnspan=3)
     yLabelLabel.grid(column=0, row=5)
-    resultbox.grid(column=0,row=6,columnspan=3)
+    pointLabelEntry.grid(column=1, row=6, columnspan=3)
+    pointLabelLabel.grid(column=0, row=6)
+    curveLabelEntry.grid(column=1, row=7, columnspan=3)
+    curveLabelLabel.grid(column=0, row=7)
+    resultbox.grid(column=0,row=8,columnspan=3)
     resultbox['yscrollcommand'] = sBar.set
-    sBar.grid(column=3, row=6)
-    btn.grid(column=2, row=7, columnspan=2)
+    sBar.grid(column=3, row=8)
+    btn.grid(column=2, row=9, columnspan=2)
     root.mainloop()
     return None
 
