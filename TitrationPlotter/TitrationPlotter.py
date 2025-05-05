@@ -1,11 +1,15 @@
 ﻿from csv import reader
 from math import ceil, log10, nan
+from sys import version
 import numpy as np
+import scipy
 import scipy.optimize as opt
 from scipy import differentiate
 import matplotlib.pyplot as plt
 from tkinter import VERTICAL, Button, Listbox, Widget, PhotoImage, Tk, StringVar, BooleanVar
 from tkinter.ttk import Frame, Entry, Label, Scrollbar, Spinbox, Button
+
+import scipy.version
 
 ca = 0.0
 cb = 0.0
@@ -24,7 +28,7 @@ ylabel = StringVar()
 xlabel = StringVar()
 # Result
 resultbox = Listbox(content, height=3, width=50)
-def titration_pH (vb: np.ndarray | float | np.float64, ka: float, delta1: float, delta2: float) -> np.ndarray | float:
+def titration_pH (vb: np.ndarray | float | np.float64, ka: float, delta1: float | np.float64, delta2: float | np.float64) -> np.ndarray | float:
     '''This returns the array of the roots.
 
     This function solves the equation about the concentration of proton.
@@ -41,14 +45,20 @@ def titration_pH (vb: np.ndarray | float | np.float64, ka: float, delta1: float,
     # For each vb, make and solve the equation
     if type(vb) == np.ndarray:
         print('size=', vb.size)
+        # Counter
+        count = 0
         for arr in np.nditer(vb):
+            count += 1
             delta = delta1 * (arr ** 2) + delta2
             polyn = [1, ka + (arr * cb) / (va + arr), ((ka / (va + arr)) * (cb * arr - ca * va)) - kw - delta * k1, - (ka * kw + 2 * delta * k2 + delta * ka * k1), -2 * k2 * ka]
             polyn.reverse()
             f = lambda x: np.polynomial.polynomial.polyval(x, polyn)
             rf = opt.fsolve(f, [0.1])
-            print('rf=', rf)
+            countmsg = f'Processing...    {str(count).rjust(len(str(vb.size)))} / {vb.size}'
+            delete = '\b' * len(countmsg)
+            print(delete + countmsg, end='')
             result.append(rf[0])
+        print()
     elif type(vb) == float or type(vb) == np.float64:
         # If it is a float, do the same
         arr = vb
@@ -63,6 +73,7 @@ def titration_pH (vb: np.ndarray | float | np.float64, ka: float, delta1: float,
         raise TypeError('Invalid type of vb')
     print('result=',result)
     rarray = -np.log10(np.array(result))
+    rarray = rarray.reshape(vb.shape)
     print('rarray=', rarray)
     return rarray
 
@@ -89,21 +100,26 @@ def cmd () -> bool:
         resultbox.insert('end', p)
     xrange = np.arange(min(*vb),max(*vb),0.00005)
     # Find the equivalent point
-    equivlist = [
-        titration_pH(vb[i+1], *popt) - titration_pH(vb[i], *popt) for i in range(len(vb)-1)
-        ]
-    equiv = vb[np.argmax(equivlist) + 1]
-    # Output the equivalent point
-    resultbox.insert('end', f'equivalent point: {equiv} mL')
-    # Output the pH at the equivalent point
-    resultbox.insert(
-        'end', f'pH at the equivalent point: {titration_pH(equiv, *popt)}')
+    # Calculate the derivative
+    # Find the points where the derivative is 1
+    derivobj = differentiate.derivative(lambda x: titration_pH(x, *popt), np.arange(vb.min(),ceil(vb.max()), 0.01))
+    deriv = derivobj.df
+    # Find the maximum
+    maxderiv = np.argmax(deriv)
+    equivalent = np.arange(vb.min(), ceil(vb.max()), 0.01)[maxderiv]
     # Find the pH at the equivalent point
-    equivpH = titration_pH(equiv, *popt)
-    plt.axhline(equivpH, 0, equiv, linestyle='--')
-    plt.axvline(equiv, 0, 1, linestyle='--')
-    plt.plot(xrange, titration_pH(xrange, *popt))
-    plt.plot(vb,pH,'.')
+    pH_equivalent = titration_pH(equivalent, *popt)
+    # Output the equivalent point
+    resultbox.insert('end',
+                     f'Equivalent point: {equivalent} mL, pH: {pH_equivalent}')
+    # Plot the point
+    plt.plot(equivalent, pH_equivalent, 'o')
+    # Plot horizontal line
+    plt.axhline(pH_equivalent, color='0.8', linestyle='--')
+    # Plot vertical line
+    plt.axvline(equivalent, color='0.8', linestyle='--')
+    plt.plot(xrange, titration_pH(xrange, *popt), color='0.3', linestyle='-')
+    plt.plot(vb,pH,'k.')
     plt.grid(True, 'both')
     plt.minorticks_on()
     plt.xticks(np.arange(int(min(vb)), ceil(max(vb)), 0.02), minor=True)
@@ -163,4 +179,7 @@ def settings () -> None:
     root.mainloop()
     return None
 
+print('This is Python',version)
+print('with NumPy',np.version.full_version)
+print('and SciPy',scipy.__version__)
 settings()
