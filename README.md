@@ -14,7 +14,7 @@ The csv file to hand to the program must be in the following format and not have
 ...
 ```
 
-You are free to use this program for any purpose allowed under the laws. For detailed introductions, visit [Wiki](https://github.com/Tayra-Sakurai/TitrationPlotter.wiki.git).
+You are free to use this program for any purpose allowed under the laws. For detailed introductions, visit [Wiki](https://github.com/Tayra-Sakurai/TitrationPlotter/wiki).
 
 ## How It Works
 
