@@ -75,4 +75,4 @@ The second and latter arguments represent fitted variables. `k1` is defined as t
 
 ## Bibliography
 
-T. Okada, T. Kakiuchi, and K. Maeda _Bunsekikagaku no Kiso_ (in Japanese, 2012) 1st edition, Kagaku Dojin
+T. Okada, T. Kakiuchi, and K. Maeda _Bunsekikagaku no Kiso_ (_Basis of Analytiacal Chemistry_) (in Japanese, 2012) 1st edition, Kagaku Dojin
