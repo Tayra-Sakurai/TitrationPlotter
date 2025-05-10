@@ -123,14 +123,16 @@ def cmd () -> bool:
     # Output the equivalent point
     resultbox.insert('end',
                      f'Equivalent point: {equivalent} mL, pH: {pH_equivalent}')
+    # Plot style setting
+    plt.style.use('grayscale')
     # Plot the point
-    plt.plot(equivalent, pH_equivalent, 'ko', label="Equivalent Point")
+    plt.plot(equivalent, pH_equivalent, 'o', label="Equivalent Point")
     # Plot horizontal line
-    plt.axhline(pH_equivalent, color='0.8', linestyle='--')
+    plt.axhline(pH_equivalent, linestyle='--')
     # Plot vertical line
-    plt.axvline(equivalent, color='0.8', linestyle='--')
-    plt.plot(xrange, titration_pH(xrange, *popt), color='0.3', linestyle='-', label=curvelabel.get())
-    plt.plot(vb,pH,'k.', label=originallabel.get())
+    plt.axvline(equivalent, linestyle='--')
+    plt.plot(xrange, titration_pH(xrange, *popt), linestyle='-', label=curvelabel.get())
+    plt.plot(vb,pH,'.', label=originallabel.get())
     plt.grid(True, 'both')
     plt.minorticks_on()
     plt.xticks(np.arange(int(min(vb)), ceil(max(vb)), 0.02), minor=True)
